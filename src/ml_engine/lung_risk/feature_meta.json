@@ -1,0 +1,27 @@
+{
+    "categorical_features": [
+        "GENDER"
+    ],
+    "numeric_features": [
+        "AGE",
+        "SMOKING",
+        "YELLOW_FINGERS",
+        "ANXIETY",
+        "PEER_PRESSURE",
+        "CHRONIC DISEASE",
+        "FATIGUE",
+        "ALLERGY",
+        "WHEEZING",
+        "ALCOHOL CONSUMING",
+        "COUGHING",
+        "SHORTNESS OF BREATH",
+        "SWALLOWING DIFFICULTY",
+        "CHEST PAIN"
+    ],
+    "input_shape": 15,
+    "training_samples": 309,
+    "class_distribution": {
+        "1": 270,
+        "0": 39
+    }
+}

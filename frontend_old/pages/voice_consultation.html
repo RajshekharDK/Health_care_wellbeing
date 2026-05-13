@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>HWELBEING - Voice Consultation</title>
+
+<script src="https://cdn.tailwindcss.com"></script>
+
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+
+<script>
+tailwind.config = {
+darkMode: "class",
+theme: {
+extend: {
+colors:{
+primary:"#2e7eff",
+"background-dark":"#0f1723"
+},
+fontFamily:{display:["Manrope"]}
+}
+}
+}
+</script>
+
+<style>
+body{
+font-family:'Manrope',sans-serif;
+min-height:100vh;
+}
+</style>
+
+</head>
+
+
+<body class="bg-background-dark text-slate-100 min-h-screen flex flex-col pb-32">
+
+<!-- HEADER -->
+<header class="sticky top-0 bg-background-dark border-b border-slate-800 px-4 py-4 z-50">
+<div class="max-w-xl mx-auto flex justify-between items-center">
+
+<button onclick="history.back()" class="p-2 bg-slate-800 rounded-lg">
+<span class="material-symbols-outlined">arrow_back</span>
+</button>
+
+<h1 class="font-bold text-lg">Voice Consultation</h1>
+
+<span></span>
+
+</div>
+</header>
+
+
+<main class="flex-1 max-w-xl mx-auto w-full p-4 space-y-6">
+
+<!-- STATUS -->
+<div class="text-center">
+<p id="statusText" class="text-primary font-bold">Tap mic to start</p>
+</div>
+
+<!-- MIC -->
+<div class="flex justify-center">
+
+<button id="micButton"
+class="w-28 h-28 bg-primary rounded-full flex items-center justify-center shadow-lg">
+
+<span class="material-symbols-outlined text-5xl">mic</span>
+
+</button>
+
+</div>
+
+<!-- TRANSCRIPT -->
+<div class="bg-slate-900 p-4 rounded-xl border border-slate-800">
+
+<p class="text-sm text-slate-400 mb-1">Live Transcript</p>
+
+<p id="liveTranscript">Waiting...</p>
+
+</div>
+
+<!-- AI RESPONSE -->
+<div class="bg-primary/10 p-4 rounded-xl border border-primary/20">
+
+<p class="text-sm text-primary mb-1">AI Response</p>
+
+<p id="aiResponse">Tap mic and speak</p>
+
+</div>
+
+<!-- LOG -->
+<div>
+
+<p class="text-xs text-slate-400 mb-2">Conversation</p>
+
+<div id="conversationLog" class="space-y-2"></div>
+
+</div>
+
+<!-- DISCLAIMER -->
+<div class="bg-amber-900/20 p-3 rounded-xl text-xs text-amber-400">
+Medical advice is not guaranteed. Always consult a doctor.
+</div>
+
+</main>
+
+
+<!-- NAV -->
+<nav class="fixed bottom-0 left-0 right-0 z-50 bg-white/80 dark:bg-background-dark/80 backdrop-blur-lg border-t border-slate-200 dark:border-slate-800 px-2 py-2">
+
+<div class="max-w-md mx-auto flex justify-between items-center">
+
+
+<a class="flex flex-col items-center gap-1 p-2 text-primary" href="dashboard.html">
+
+<span class="material-symbols-outlined">dashboard</span>
+
+<span class="text-[10px] font-bold">Dashboard</span>
+
+</a>
+
+
+<a class="flex flex-col items-center gap-1 p-2 text-slate-400" href="symptom_checker.html">
+
+<span class="material-symbols-outlined">stethoscope</span>
+
+<span class="text-[10px] font-medium">Symptom</span>
+
+</a>
+
+
+<a class="flex flex-col items-center gap-1 p-2 text-slate-400" href="skin_analysis.html">
+
+<span class="material-symbols-outlined">face</span>
+
+<span class="text-[10px] font-medium">Skin</span>
+
+</a>
+
+
+<a class="flex flex-col items-center gap-1 p-2 text-slate-400" href="voice_consultation.html">
+
+<span class="material-symbols-outlined">mic</span>
+
+<span class="text-[10px] font-medium">Voice</span>
+
+</a>
+
+
+<a class="flex flex-col items-center gap-1 p-2 text-slate-400" href="medical_insights.html">
+
+<span class="material-symbols-outlined">insights</span>
+
+<span class="text-[10px] font-medium">Insights</span>
+
+</a>
+
+
+<a class="flex flex-col items-center gap-1 p-2 text-slate-400" href="chat.html">
+
+<span class="material-symbols-outlined">chat_bubble</span>
+
+<span class="text-[10px] font-medium">Chat</span>
+
+</a>
+
+</div>
+
+</nav>
+
+<script>
+const API = "http://localhost:8000"
+
+let sessionId = null
+let recognition = null
+let isListening = false
+let currentAudio = null
+
+const micBtn = document.getElementById("micButton")
+const transcript = document.getElementById("liveTranscript")
+const aiResponse = document.getElementById("aiResponse")
+const status = document.getElementById("statusText")
+const log = document.getElementById("conversationLog")
+
+// 🎤 INIT SPEECH RECOGNITION
+function initRecognition(){
+
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
+
+    if(!SpeechRecognition){
+        alert("Speech Recognition not supported in this browser")
+        return
+    }
+
+    recognition = new SpeechRecognition()
+
+    recognition.continuous = false
+    recognition.interimResults = false
+
+    recognition.onstart = () => {
+        status.innerText = "Listening..."
+        micBtn.classList.add("bg-red-500")
+    }
+
+    recognition.onresult = async (event) => {
+
+        const text = event.results[0][0].transcript
+        transcript.innerText = text
+
+        addLog("You", text)
+
+        stopListening()
+
+        await processMessage(text)
+    }
+
+    recognition.onerror = (e) => {
+        console.error("Speech error:", e)
+        status.innerText = "Mic error. Try again."
+        stopListening()
+    }
+
+    recognition.onend = () => {
+        isListening = false
+        micBtn.classList.remove("bg-red-500")
+    }
+}
+
+// 🎤 START
+function startListening(){
+
+    if(!recognition) initRecognition()
+
+    // stop audio if playing
+    if(currentAudio){
+        currentAudio.pause()
+        currentAudio = null
+    }
+
+    try{
+        recognition.start()
+        isListening = true
+    }catch{
+        console.warn("Already listening")
+    }
+}
+
+// 🎤 STOP
+function stopListening(){
+    if(recognition && isListening){
+        recognition.stop()
+    }
+    isListening = false
+}
+
+// 🔁 PROCESS MESSAGE
+async function processMessage(message){
+
+    status.innerText = "Thinking..."
+
+    try{
+
+        const res = await fetch(API + "/voice-chat", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({
+                message: message,
+                session_id: sessionId
+            })
+        })
+
+        const data = await res.json()
+
+        sessionId = data.session_id
+
+        updateAI(data.reply)
+        addLog("HEALTHY", data.reply)
+
+        // 🔊 PLAY AUDIO SAFELY
+        if(data.audio_url){
+
+            if(currentAudio){
+                currentAudio.pause()
+            }
+
+            currentAudio = new Audio(data.audio_url)
+
+            currentAudio.onended = () => {
+                status.innerText = "Tap mic to continue"
+            }
+
+            currentAudio.onerror = () => {
+                console.error("Audio failed")
+                status.innerText = "Audio error"
+            }
+
+            await currentAudio.play()
+        }
+
+        // 🚨 RISK UI
+        if(data.risk === "HIGH"){
+            status.innerText = "⚠️ Seek medical attention"
+        } else {
+            status.innerText = "Tap mic to continue"
+        }
+
+    } catch(err){
+        console.error(err)
+        status.innerText = "Server error"
+    }
+}
+
+// 🎤 CLICK HANDLER
+micBtn.onclick = () => {
+    if(!isListening) startListening()
+    else stopListening()
+}
+
+// 💬 UPDATE AI
+function updateAI(text){
+    aiResponse.innerText = text
+}
+
+// 📜 ADD LOG
+function addLog(role, text){
+
+    const div = document.createElement("div")
+
+    div.className = role === "You"
+        ? "text-right text-blue-300"
+        : "text-left text-green-300"
+
+    div.innerText = role + ": " + text
+
+    log.appendChild(div)
+
+    log.scrollTop = log.scrollHeight
+}
+</script>
+
+</body>
+</html>

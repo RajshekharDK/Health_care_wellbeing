@@ -1,0 +1,14 @@
+{
+    "model_type": "NLP Symptom Triage (XGBoost)",
+    "embedding_model": "all-MiniLM-L6-v2",
+    "top_diseases": 25,
+    "min_samples": 5,
+    "feature_info": {
+        "embedding_dim": 384,
+        "extra_features": [
+            "symptom_count",
+            "severity_score",
+            "critical_flag"
+        ]
+    }
+}

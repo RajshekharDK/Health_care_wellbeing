@@ -1,0 +1,26 @@
+{
+    "model_type": "Lung Cancer Risk Estimator",
+    "target": "LUNG_CANCER",
+    "features": [
+        "GENDER",
+        "AGE",
+        "SMOKING",
+        "YELLOW_FINGERS",
+        "ANXIETY",
+        "PEER_PRESSURE",
+        "CHRONIC DISEASE",
+        "FATIGUE",
+        "ALLERGY",
+        "WHEEZING",
+        "ALCOHOL CONSUMING",
+        "COUGHING",
+        "SHORTNESS OF BREATH",
+        "SWALLOWING DIFFICULTY",
+        "CHEST PAIN"
+    ],
+    "risk_logic": {
+        "low": "< 0.35",
+        "moderate": "0.35 - 0.65",
+        "high": "> 0.65"
+    }
+}

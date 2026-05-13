@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>HWELBEING - Medical Insights</title>
+
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+
+<script>
+tailwind.config = {
+darkMode: "class",
+theme: {
+extend: {
+colors:{
+primary:"#2e7eff",
+"background-light":"#f5f6f8",
+"background-dark":"#0f1723"
+},
+fontFamily:{display:["Manrope"]}
+}
+}
+}
+</script>
+
+</head>
+
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 min-h-screen pb-28">
+
+<!-- HEADER WITH BACK -->
+<header class="sticky top-0 z-50 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md border-b px-4 py-3">
+<div class="flex items-center justify-between max-w-5xl mx-auto">
+
+<div class="flex items-center gap-3">
+<button onclick="history.back()" class="p-2 bg-slate-200 dark:bg-slate-800 rounded-lg">
+<span class="material-symbols-outlined">arrow_back</span>
+</button>
+
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-3xl">health_metrics</span>
+<h1 class="text-xl font-bold">HWELBEING</h1>
+</div>
+</div>
+
+</div>
+</header>
+
+<main class="max-w-5xl mx-auto px-4 py-6 space-y-8">
+
+<!-- RISK + SCORE -->
+<section class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+<div class="p-6 border rounded-xl bg-white dark:bg-slate-900">
+<p class="text-sm text-slate-400">Current Risk Level</p>
+<p id="riskLevel" class="text-2xl font-bold">Loading...</p>
+</div>
+
+<div class="p-6 border rounded-xl bg-white dark:bg-slate-900">
+<p class="text-sm text-slate-400">Wellness Score</p>
+<p id="wellnessScore" class="text-2xl font-bold">--</p>
+</div>
+
+</section>
+
+<!-- PREDICTION -->
+<section>
+<h2 class="text-xl font-bold mb-4">Predictive Analytics</h2>
+<p id="predictionText" class="text-2xl font-bold">Loading...</p>
+</section>
+
+<!-- HISTORY -->
+<section>
+<h2 class="text-xl font-bold mb-4">Consultation History</h2>
+<div id="historyContainer" class="space-y-4"></div>
+</section>
+
+</main>
+
+<!-- 🔥 BOTTOM NAV (RESTORED) -->
+<nav class="fixed bottom-0 left-0 right-0 z-50 bg-white/90 dark:bg-slate-900/90 backdrop-blur-lg border-t px-4 py-2">
+
+<div class="max-w-md mx-auto flex justify-between items-center">
+
+<a class="flex flex-col items-center text-slate-400" href="dashboard.html">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="text-[10px]">Dashboard</span>
+</a>
+
+<a class="flex flex-col items-center text-slate-400" href="symptom_checker.html">
+<span class="material-symbols-outlined">stethoscope</span>
+<span class="text-[10px]">Symptom</span>
+</a>
+
+<a class="flex flex-col items-center text-slate-400" href="skin_analysis.html">
+<span class="material-symbols-outlined">face</span>
+<span class="text-[10px]">Skin</span>
+</a>
+
+<a class="flex flex-col items-center text-slate-400" href="voice_consultation.html">
+<span class="material-symbols-outlined">mic</span>
+<span class="text-[10px]">Voice</span>
+</a>
+
+<a class="flex flex-col items-center text-primary" href="medical_insights.html">
+<span class="material-symbols-outlined">insights</span>
+<span class="text-[10px] font-bold">Insights</span>
+</a>
+
+<a class="flex flex-col items-center text-slate-400" href="chat.html">
+<span class="material-symbols-outlined">chat_bubble</span>
+<span class="text-[10px]">Chat</span>
+</a>
+
+</div>
+</nav>
+
+<script>
+const API = "http://localhost:8000"
+
+let sessionId = null
+
+// INIT
+window.onload = async () => {
+    await startSession()
+    await loadInsights()
+}
+
+// START SESSION
+async function startSession(){
+    const res = await fetch(API + "/conversation/start",{method:"POST"})
+    const data = await res.json()
+    sessionId = data.session_id
+}
+
+// LOAD DATA
+async function loadInsights(){
+
+    try{
+
+        const res = await fetch(API + "/conversation/message",{
+            method:"POST",
+            headers:{"Content-Type":"application/json"},
+            body: JSON.stringify({
+                session_id: sessionId,
+                message: "Analyze my health condition"
+            })
+        })
+
+        const data = await res.json()
+
+        updateRisk(data)
+        updateScore(data)
+        updatePrediction(data)
+        updateHistory(data)
+
+        // 🔥 NEW: TRIAGE RENDER
+        if(data.triage){
+            renderTriage(data.triage)
+        }
+
+    }catch(e){
+        console.error(e)
+    }
+}
+
+// ============================
+// BASIC UI
+// ============================
+function updateRisk(data){
+    document.getElementById("riskLevel").innerText =
+        data.risk ? data.risk + " Risk" : "Unknown"
+}
+
+function updateScore(data){
+    const score = Math.round((data.confidence || 0.5) * 100)
+    document.getElementById("wellnessScore").innerText = score + "/100"
+}
+
+function updatePrediction(data){
+    let text = "Stable Outlook"
+
+    if(data.risk === "HIGH") text = "Needs Immediate Attention"
+    else if(data.risk === "MODERATE") text = "Monitor Condition"
+
+    document.getElementById("predictionText").innerText = text
+}
+
+function updateHistory(data){
+
+    const container = document.getElementById("historyContainer")
+
+    const div = document.createElement("div")
+
+    div.className = "p-4 border rounded-xl bg-slate-900 text-white"
+
+    div.innerHTML = `
+        <div class="text-xs text-primary">${new Date().toLocaleString()}</div>
+        <div class="font-bold mt-1">AI Consultation</div>
+        <div class="text-sm mt-1">${data.reply}</div>
+    `
+
+    container.prepend(div)
+}
+
+// ============================
+// 🔥 TRIAGE UI (NEW)
+// ============================
+function renderTriage(data){
+
+    const container = document.getElementById("historyContainer")
+
+    // CONDITIONS
+    if(data.possible_conditions){
+        data.possible_conditions.slice(0,2).forEach(c=>{
+
+            const div = document.createElement("div")
+
+            const percent = (c.probability * 100).toFixed(1)
+
+            div.className = "p-4 rounded-xl border bg-white dark:bg-slate-900"
+
+            div.innerHTML = `
+                <div class="flex justify-between">
+                    <div>
+                        <div class="font-bold">${c.condition}</div>
+                        <div class="text-xs text-primary">Prediction</div>
+                    </div>
+                    <div class="text-primary font-bold">${percent}%</div>
+                </div>
+
+                <div class="w-full h-2 bg-slate-200 dark:bg-slate-700 mt-2 rounded">
+                    <div class="h-full bg-primary rounded" style="width:${percent}%"></div>
+                </div>
+            `
+
+            container.prepend(div)
+        })
+    }
+
+    // REPORT
+    if(data.health_report){
+
+        const reportDiv = document.createElement("div")
+
+        reportDiv.className = "p-4 rounded-xl bg-primary/10 border border-primary/20"
+
+        reportDiv.innerHTML = `
+            <div class="font-bold mb-2 text-primary">Health Guidance</div>
+            <div class="text-sm whitespace-pre-line text-slate-300">
+                ${data.health_report}
+            </div>
+        `
+
+        container.prepend(reportDiv)
+    }
+
+}
+</script>
+
+</body>
+</html>

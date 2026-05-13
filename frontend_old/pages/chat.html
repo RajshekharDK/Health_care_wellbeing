@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>HWELBEING AI - Chat</title>
+
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+
+<script>
+tailwind.config = {
+darkMode: "class",
+theme: {
+extend: {
+colors:{
+primary:"#2e7eff",
+"background-light":"#f5f6f8",
+"background-dark":"#0f1723"
+},
+fontFamily:{display:["Manrope"]}
+}
+}
+}
+</script>
+
+<style>
+body { font-family: 'Manrope', sans-serif; }
+.hide-scrollbar::-webkit-scrollbar { display: none; }
+</style>
+
+</head>
+
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-display">
+
+<div class="flex flex-col h-screen pb-20">
+
+<!-- HEADER -->
+<header class="flex items-center justify-between p-4 border-b">
+
+<div class="flex items-center gap-3">
+
+<!-- 🔙 BACK BUTTON -->
+<button onclick="history.back()" class="p-2 bg-slate-200 dark:bg-slate-800 rounded-lg">
+<span class="material-symbols-outlined">arrow_back</span>
+</button>
+
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">chat</span>
+<h2 class="font-bold text-lg">HEALTHY AI</h2>
+</div>
+
+</div>
+
+<div class="text-xs text-green-500 font-bold">Active</div>
+
+</header>
+
+<!-- CHAT -->
+<main id="chatContainer" class="flex-1 overflow-y-auto p-4 space-y-4 hide-scrollbar"></main>
+
+<!-- INPUT -->
+<div class="p-4 border-t flex gap-2">
+
+<input id="messageInput"
+class="flex-1 rounded-full px-4 py-2 bg-white dark:bg-slate-800"
+placeholder="Describe your symptoms..." />
+
+<button id="sendBtn"
+class="bg-primary text-white px-4 py-2 rounded-full">
+Send
+</button>
+
+</div>
+
+</div>
+
+<!-- 🔥 BOTTOM NAV -->
+<nav class="fixed bottom-0 left-0 right-0 z-50 bg-white/90 dark:bg-slate-900/90 backdrop-blur border-t px-4 py-2">
+
+<div class="max-w-md mx-auto flex justify-between items-center">
+
+<a class="flex flex-col items-center text-slate-400" href="dashboard.html">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="text-[10px]">Dashboard</span>
+</a>
+
+<a class="flex flex-col items-center text-slate-400" href="symptom_checker.html">
+<span class="material-symbols-outlined">stethoscope</span>
+<span class="text-[10px]">Symptom</span>
+</a>
+
+<a class="flex flex-col items-center text-slate-400" href="skin_analysis.html">
+<span class="material-symbols-outlined">face</span>
+<span class="text-[10px]">Skin</span>
+</a>
+
+<a class="flex flex-col items-center text-slate-400" href="voice_consultation.html">
+<span class="material-symbols-outlined">mic</span>
+<span class="text-[10px]">Voice</span>
+</a>
+
+<a class="flex flex-col items-center text-slate-400" href="medical_insights.html">
+<span class="material-symbols-outlined">insights</span>
+<span class="text-[10px]">Insights</span>
+</a>
+
+<a class="flex flex-col items-center text-primary" href="chat.html">
+<span class="material-symbols-outlined">chat_bubble</span>
+<span class="text-[10px] font-bold">Chat</span>
+</a>
+
+</div>
+</nav>
+
+<script>
+const API = "http://localhost:8000"
+
+let sessionId = null
+const chat = document.getElementById("chatContainer")
+const input = document.getElementById("messageInput")
+const sendBtn = document.getElementById("sendBtn")
+
+// INIT
+window.onload = async () => {
+
+const res = await fetch(API + "/conversation/start",{method:"POST"})
+const data = await res.json()
+
+sessionId = data.session_id
+
+addAI(data.message)
+}
+
+// SEND
+async function sendMessage(){
+
+const text = input.value.trim()
+if(!text) return
+
+addUser(text)
+input.value = ""
+
+showTyping()
+
+try{
+
+const res = await fetch(API + "/conversation/message",{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body: JSON.stringify({
+session_id: sessionId,
+message: text
+})
+})
+
+const data = await res.json()
+
+removeTyping()
+
+addAI(data.reply)
+
+if(data.triage){
+addTriage(data.triage)
+}
+
+if(data.audio_url){
+new Audio(data.audio_url).play()
+}
+
+}catch(e){
+removeTyping()
+addAI("Something went wrong.")
+}
+
+}
+
+// UI
+function addUser(text){
+
+const div = document.createElement("div")
+div.className="text-right"
+
+div.innerHTML=`
+<div class="inline-block bg-primary text-white px-4 py-2 rounded-xl">
+${text}
+</div>
+`
+
+chat.appendChild(div)
+scroll()
+}
+
+function addAI(text){
+
+const div = document.createElement("div")
+
+div.innerHTML=`
+<div class="inline-block bg-white dark:bg-slate-800 px-4 py-2 rounded-xl border">
+${text}
+</div>
+`
+
+chat.appendChild(div)
+scroll()
+}
+
+function addTriage(data){
+
+const top = data.possible_conditions?.[0]
+if(!top) return
+
+const div = document.createElement("div")
+
+div.innerHTML=`
+<div class="p-3 bg-primary/10 border rounded-xl">
+<b>${top.condition}</b><br/>
+Probability: ${(top.probability*100).toFixed(1)}%
+</div>
+`
+
+chat.appendChild(div)
+scroll()
+}
+
+// TYPING
+let typing=null
+
+function showTyping(){
+typing=document.createElement("div")
+typing.innerText="HEALTHY is typing..."
+chat.appendChild(typing)
+scroll()
+}
+
+function removeTyping(){
+if(typing) typing.remove()
+}
+
+// SCROLL
+function scroll(){
+chat.scrollTop = chat.scrollHeight
+}
+
+// EVENTS
+sendBtn.onclick = sendMessage
+
+input.addEventListener("keypress",(e)=>{
+if(e.key==="Enter") sendMessage()
+})
+</script>
+
+</body>
+</html>

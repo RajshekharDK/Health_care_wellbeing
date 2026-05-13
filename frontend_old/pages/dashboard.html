@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+
+<title>HWELBEING AI Dashboard</title>
+
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+
+<script>
+tailwind.config = {
+darkMode:"class",
+theme:{
+extend:{
+colors:{
+primary:"#2e7eff",
+"background-light":"#f5f6f8",
+"background-dark":"#0f1723"
+},
+fontFamily:{
+"display":["Manrope","sans-serif"]
+}
+}
+}
+}
+</script>
+
+<style>
+body{
+min-height:max(884px,100dvh);
+}
+
+.material-symbols-outlined {
+font-family: 'Material Symbols Outlined';
+font-weight: normal;
+font-style: normal;
+font-size: 24px;
+display: inline-block;
+line-height: 1;
+white-space: nowrap;
+direction: ltr;
+}
+</style>
+</head>
+
+
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 antialiased">
+
+<div class="relative flex min-h-screen w-full flex-col overflow-x-hidden">
+
+
+<!-- HEADER -->
+
+<header class="sticky top-0 z-50 flex items-center bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md p-4 border-b border-slate-200 dark:border-slate-800 justify-between">
+
+<div class="flex items-center gap-3">
+
+<div class="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+<span class="material-symbols-outlined">health_and_safety</span>
+</div>
+
+<h1 class="text-slate-900 dark:text-white text-xl font-extrabold leading-tight tracking-tight">
+HWELBEING AI
+</h1>
+
+</div>
+
+</header>
+
+
+
+<main class="flex-1 pb-24">
+
+
+<!-- AI BANNER -->
+
+<div class="p-4">
+
+<div class="relative overflow-hidden rounded-xl bg-slate-100 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 shadow-sm">
+
+<div class="flex flex-col md:flex-row items-center gap-6 p-6">
+
+<div class="flex-1 space-y-4">
+
+<div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-bold uppercase tracking-wider">
+
+<span class="material-symbols-outlined text-sm">smart_toy</span>
+
+AI Status:
+<span id="aiStatus">Checking...</span>
+
+</div>
+
+
+<h2 class="text-2xl md:text-3xl font-bold text-slate-900 dark:text-white">
+Hello, I'm your Health AI Assistant
+</h2>
+
+
+<p class="text-slate-600 dark:text-slate-400 text-lg max-w-lg">
+How are you feeling today? I can help analyze symptoms, review lab results, or provide wellness tips.
+</p>
+
+
+<button id="startChatBtn" class="flex items-center gap-2 px-6 py-3 bg-primary hover:bg-primary/90 text-white rounded-xl font-semibold transition-colors shadow-lg shadow-primary/20">
+
+<span>Start Wellness Chat</span>
+
+<span class="material-symbols-outlined">arrow_forward</span>
+
+</button>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+
+
+<!-- QUICK ACTIONS -->
+
+<div class="px-4 mb-8">
+
+<h3 class="text-slate-900 dark:text-white text-lg font-bold mb-4">
+Quick Health Tools
+</h3>
+
+
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+
+
+<button id="symptomBtn" class="group flex flex-col items-center justify-center p-6 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-primary transition-all">
+
+<div class="size-12 rounded-full bg-primary/10 text-primary flex items-center justify-center mb-3">
+<span class="material-symbols-outlined">stethoscope</span>
+</div>
+
+<span class="text-sm font-bold dark:text-white">
+Check Symptoms
+</span>
+
+</button>
+
+
+
+<button id="skinBtn" class="group flex flex-col items-center justify-center p-6 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-primary transition-all">
+
+<div class="size-12 rounded-full bg-purple-500/10 text-purple-500 flex items-center justify-center mb-3">
+<span class="material-symbols-outlined">face</span>
+</div>
+
+<span class="text-sm font-bold dark:text-white">
+Skin Analysis
+</span>
+
+</button>
+
+
+
+<button id="voiceBtn" class="group flex flex-col items-center justify-center p-6 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-primary transition-all">
+
+<div class="size-12 rounded-full bg-green-500/10 text-green-500 flex items-center justify-center mb-3">
+<span class="material-symbols-outlined">mic</span>
+</div>
+
+<span class="text-sm font-bold dark:text-white">
+Voice Consult
+</span>
+
+</button>
+
+
+
+<button id="chatBtn" class="group flex flex-col items-center justify-center p-6 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-primary transition-all">
+
+<div class="size-12 rounded-full bg-orange-500/10 text-orange-500 flex items-center justify-center mb-3">
+<span class="material-symbols-outlined">chat</span>
+</div>
+
+<span class="text-sm font-bold dark:text-white">
+AI Health Chat
+</span>
+
+</button>
+
+
+</div>
+
+</div>
+
+
+</main>
+
+
+
+<!-- BOTTOM NAV -->
+
+<nav class="fixed bottom-0 left-0 right-0 z-50 bg-white/80 dark:bg-background-dark/80 backdrop-blur-lg border-t border-slate-200 dark:border-slate-800 px-2 py-2">
+
+<div class="max-w-md mx-auto flex justify-between items-center">
+
+
+<a class="flex flex-col items-center gap-1 p-2 text-primary" href="dashboard.html">
+
+<span class="material-symbols-outlined">dashboard</span>
+
+<span class="text-[10px] font-bold">Dashboard</span>
+
+</a>
+
+
+<a class="flex flex-col items-center gap-1 p-2 text-slate-400" href="symptom_checker.html">
+
+<span class="material-symbols-outlined">stethoscope</span>
+
+<span class="text-[10px] font-medium">Symptom</span>
+
+</a>
+
+
+<a class="flex flex-col items-center gap-1 p-2 text-slate-400" href="skin_analysis.html">
+
+<span class="material-symbols-outlined">face</span>
+
+<span class="text-[10px] font-medium">Skin</span>
+
+</a>
+
+
+<a class="flex flex-col items-center gap-1 p-2 text-slate-400" href="voice_consultation.html">
+
+<span class="material-symbols-outlined">mic</span>
+
+<span class="text-[10px] font-medium">Voice</span>
+
+</a>
+
+
+<a class="flex flex-col items-center gap-1 p-2 text-slate-400" href="medical_insights.html">
+
+<span class="material-symbols-outlined">insights</span>
+
+<span class="text-[10px] font-medium">Insights</span>
+
+</a>
+
+
+<a class="flex flex-col items-center gap-1 p-2 text-slate-400" href="chat.html">
+
+<span class="material-symbols-outlined">chat_bubble</span>
+
+<span class="text-[10px] font-medium">Chat</span>
+
+</a>
+
+</div>
+
+</nav>
+
+
+
+<script>
+
+const API="http://localhost:8000"
+
+
+async function checkAIStatus(){
+
+try{
+
+await fetch(API+"/triage",{
+method:"POST",
+headers:{'Content-Type':'application/json'},
+body:JSON.stringify({symptoms:["test"]})
+})
+
+document.getElementById("aiStatus").innerText="Online"
+
+}catch{
+
+document.getElementById("aiStatus").innerText="Offline"
+
+}
+
+}
+
+
+document.getElementById("startChatBtn").onclick=()=>{
+
+window.location.href="chat.html"
+
+}
+
+document.getElementById("symptomBtn").onclick=()=>{
+
+window.location.href="symptom_checker.html"
+
+}
+
+document.getElementById("skinBtn").onclick=()=>{
+
+window.location.href="skin_analysis.html"
+
+}
+
+document.getElementById("voiceBtn").onclick=()=>{
+
+window.location.href="voice_consultation.html"
+
+}
+
+document.getElementById("chatBtn").onclick=()=>{
+
+window.location.href="chat.html"
+
+}
+
+
+checkAIStatus()
+
+</script>
+
+
+</body>
+</html>

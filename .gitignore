@@ -1,0 +1,121 @@
+# ================================
+# 🐍 Python
+# ================================
+__pycache__/
+*.py[cod]
+*$py.class
+
+# ================================
+# 🧪 Virtual Environment
+# ================================
+.venv/
+venv/
+env/
+
+# ================================
+# 🔐 Environment Variables
+# ================================
+.env
+.env.*
+
+# ================================
+# 📦 Python Build / Packaging
+# ================================
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# ================================
+# 📊 Logs
+# ================================
+*.log
+logs/
+
+# ================================
+# 🧠 ML / AI Models (VERY IMPORTANT)
+# ================================
+*.joblib
+*.pkl
+*.h5
+*.pt
+*.onnx
+*.pb
+
+# Uncomment if you WANT to track models
+# !src/ml_engine/**/pipeline.pkl
+# !src/ml_engine/**/skin_model/**
+
+# ================================
+# 🧪 Experiment / Notebook
+# ================================
+.ipynb_checkpoints/
+
+# ================================
+# ⚛️ Node.js / Frontend
+# ================================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Frontend build outputs
+frontend/dist/
+frontend/build/
+
+# Root node (if used)
+dist/
+build/
+
+# ================================
+# 🎨 Vite
+# ================================
+.vite/
+
+# ================================
+# 🖼️ Temporary Files (IMPORTANT)
+# ================================
+temp_images/*
+!temp_images/.gitkeep
+
+temp_audio/*
+!temp_audio/.gitkeep
+
+# Static generated audio (optional)
+static/*.mp3
+
+# ================================
+# 🧪 Test Outputs
+# ================================
+coverage/
+htmlcov/
+
+# ================================
+# 🐳 Docker
+# ================================
+*.tar
+docker-compose.override.yml
+
+# ================================
+# 🧠 Cache / Runtime
+# ================================
+.cache/
+*.sqlite3
+
+# ================================
+# 🧰 IDE / Editor
+# ================================
+.vscode/
+.idea/
+
+# ================================
+# 💻 OS Files
+# ================================
+.DS_Store
+Thumbs.db
+
+# ================================
+# 📂 Misc
+# ================================
+*.swp
+*.swo

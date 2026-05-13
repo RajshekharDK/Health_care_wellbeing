@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>HWELBEING Skin Analysis</title>
+
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+
+<script>
+tailwind.config = {
+darkMode:"class",
+theme:{
+extend:{
+colors:{
+primary:"#2e7eff",
+"background-dark":"#0f1723"
+},
+fontFamily:{display:["Manrope"]}
+}
+}
+}
+</script>
+
+<style>
+body{
+font-family:'Manrope',sans-serif;
+min-height:max(884px,100dvh);
+}
+</style>
+
+</head>
+
+
+<body class="bg-background-dark text-slate-100 min-h-screen flex flex-col">
+
+<header class="sticky top-0 bg-background-dark border-b border-slate-800 px-4 py-4">
+<div class="max-w-lg mx-auto flex items-center justify-between">
+
+<button onclick="history.back()">
+<span class="material-symbols-outlined">arrow_back</span>
+</button>
+
+<h1 class="font-bold text-lg">AI Skin Analysis</h1>
+
+<span class="material-symbols-outlined">help</span>
+
+</div>
+</header>
+
+
+<main class="flex-1 max-w-lg mx-auto w-full p-4 space-y-6">
+
+
+<section class="text-center">
+<h2 class="text-2xl font-bold">Analyze Your Skin</h2>
+<p class="text-slate-400 text-sm">
+Upload a clear photo of the affected area for AI dermatology insights.
+</p>
+</section>
+
+
+<!-- Upload Box -->
+
+<section>
+
+<div onclick="document.getElementById('imageInput').click()"
+class="cursor-pointer border-2 border-dashed border-primary/40 rounded-xl p-8 flex flex-col items-center bg-primary/5">
+
+<span class="material-symbols-outlined text-4xl text-primary mb-3">
+cloud_upload
+</span>
+
+<p class="font-bold">Click to upload image</p>
+
+<p class="text-xs text-slate-400">
+Supported: JPG PNG
+</p>
+
+</div>
+
+<input type="file" id="imageInput" accept="image/*" class="hidden">
+
+</section>
+
+
+<!-- Preview -->
+
+<section>
+
+<div class="rounded-xl overflow-hidden border border-slate-800 max-h-[420px]">
+
+<img id="previewImage"
+class="w-full object-cover hidden"
+style="max-height:420px"
+src=""/>
+
+</div>
+
+</section>
+
+<!-- Remove-->
+<button onclick="removeImage()"
+class="text-xs text-red-400 mt-2">
+
+Remove Image
+
+</button>
+
+<!-- Analyze Button -->
+
+<button id="analyzeBtn"
+onclick="analyzeSkin()"
+class="w-full bg-primary text-white font-bold py-4 rounded-xl">
+
+Analyze Skin
+
+</button>
+
+
+<!-- Results -->
+
+<section id="resultCard" class="hidden">
+
+<div class="bg-slate-900 rounded-xl p-6 border border-slate-800 space-y-4">
+
+<div class="flex justify-between items-start">
+
+<div>
+
+<span class="text-xs bg-primary/20 text-primary px-2 py-1 rounded">
+AI Prediction
+</span>
+
+<h3 id="conditionName" class="text-xl font-bold mt-2">
+Condition
+</h3>
+
+</div>
+
+<div class="text-right">
+
+<div id="confidenceScore" class="text-2xl text-primary font-bold">
+0%
+</div>
+
+<div class="text-[10px] text-slate-500 uppercase">
+Confidence
+</div>
+
+</div>
+
+</div>
+
+
+<div class="p-4 bg-slate-800 rounded-lg">
+
+<h4 class="font-bold mb-2 flex items-center gap-2">
+
+<span class="material-symbols-outlined text-primary">
+medical_services
+</span>
+
+Treatment Guidance
+
+</h4>
+
+<p id="treatmentText" class="text-sm text-slate-400">
+Guidance will appear here.
+</p>
+
+</div>
+
+</div>
+
+</section>
+
+
+</main>
+
+
+<script>
+
+const API="http://localhost:8000"
+
+let selectedImage=null
+let sessionId=null
+
+// ============================
+// INIT AI SESSION
+// ============================
+window.onload = async () => {
+    const res = await fetch(API + "/conversation/start",{method:"POST"})
+    const data = await res.json()
+    sessionId = data.session_id
+}
+
+// ============================
+// IMAGE PREVIEW
+// ============================
+document.getElementById("imageInput").addEventListener("change",(e)=>{
+
+const file=e.target.files[0]
+
+if(!file) return
+
+selectedImage=file
+
+const preview=document.getElementById("previewImage")
+
+preview.src=URL.createObjectURL(file)
+
+preview.classList.remove("hidden")
+
+})
+
+// ============================
+// REMOVE IMAGE
+// ============================
+function removeImage(){
+
+selectedImage=null
+
+const preview=document.getElementById("previewImage")
+
+preview.src=""
+preview.classList.add("hidden")
+
+}
+
+// ============================
+// ANALYZE SKIN
+// ============================
+async function analyzeSkin(){
+
+if(!selectedImage){
+
+alert("Please upload an image first")
+return
+
+}
+
+const btn=document.getElementById("analyzeBtn")
+
+btn.innerHTML=`<span class="animate-spin material-symbols-outlined mr-2">progress_activity</span>Analyzing`
+btn.disabled=true
+
+const formData=new FormData()
+formData.append("file",selectedImage)
+
+try{
+
+// 🔥 STEP 1: ML SKIN ANALYSIS
+const res=await fetch(API+"/skin-analysis",{
+method:"POST",
+body:formData
+})
+
+if(!res.ok) throw new Error("Skin API failed")
+
+const skinData=await res.json()
+
+console.log("Skin:",skinData)
+
+// 🔥 STEP 2: SEND RESULT TO AI FOR EXPLANATION
+const condition = skinData.possible_conditions?.[0]?.condition || "skin issue"
+
+const aiRes = await fetch(API + "/conversation/message",{
+method:"POST",
+headers:{ "Content-Type":"application/json" },
+body: JSON.stringify({
+session_id: sessionId,
+message: `Explain this skin condition: ${condition}`
+})
+})
+
+const aiData = await aiRes.json()
+
+console.log("AI:",aiData)
+
+// 🔥 MERGE RESULTS
+renderResult(skinData, aiData)
+
+}catch(e){
+
+console.error(e)
+alert("Skin analysis failed. Please try again.")
+
+}
+
+btn.innerHTML="Analyze Skin"
+btn.disabled=false
+
+}
+
+// ============================
+// RENDER RESULT
+// ============================
+function renderResult(data, aiData){
+
+if(!data.possible_conditions || data.possible_conditions.length===0){
+
+alert("No prediction returned")
+return
+
+}
+
+document.getElementById("resultCard").classList.remove("hidden")
+
+const top=data.possible_conditions[0]
+
+// Condition
+document.getElementById("conditionName").innerText =
+top.condition || "Unknown"
+
+// Confidence
+document.getElementById("confidenceScore").innerText =
+Math.round((top.confidence || 0)*100)+"%"
+
+// ============================
+// TREATMENT
+// ============================
+let guidanceHTML=""
+
+if(data.treatment_guidance && data.treatment_guidance.length>0){
+
+data.treatment_guidance.forEach(m=>{
+
+guidanceHTML += `
+<div class="mb-3 pb-2 border-b border-slate-700 last:border-0">
+
+<div class="font-semibold text-slate-200">
+${m.drug}
+</div>
+
+<div class="text-xs text-slate-400 mt-1">
+${m.dose_schedule ? m.dose_schedule : "Apply as directed"}
+</div>
+
+</div>
+`
+
+})
+
+}else{
+guidanceHTML="Consult a dermatologist if symptoms persist."
+}
+
+// ============================
+// 🔥 ADD AI EXPLANATION
+// ============================
+guidanceHTML += `
+<div class="mt-4 p-3 rounded-lg bg-primary/10 border border-primary/20">
+
+<div class="text-primary font-bold text-sm mb-1">
+AI Explanation
+</div>
+
+<div class="text-sm text-slate-300">
+${aiData.reply}
+</div>
+
+</div>
+`
+
+document.getElementById("treatmentText").innerHTML=guidanceHTML
+
+}
+</script>
+
+</body>
+</html>
